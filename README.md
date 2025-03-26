@@ -25,7 +25,7 @@ docker build -t ius_proj .
 ```sh
 make clean
 make
-./build/posix_dem
+./build/posix_demo
 ```
 
 ### Логирование
