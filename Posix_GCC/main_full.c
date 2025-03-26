@@ -193,6 +193,22 @@ static SemaphoreHandle_t xMutexToDelete = NULL;
 
 /*-----------------------------------------------------------*/
 
+static void vLogTask(void *pvParameters) {
+    FILE *file;
+    printf("Log task started\n");
+    for (;;) {
+        UBaseType_t taskCount = uxTaskGetNumberOfTasks();
+        file = fopen("/log/freetos.log", "a");
+        if (file != NULL) {
+            fprintf(file, "Number of running tasks: %lu\n", (unsigned long)taskCount);
+            fclose(file);
+        } else {
+            printf("Failed to open log file\n");
+        }
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    }
+}
+
 int main_full( void )
 {
     /* Start the check task as described at the top of this file. */
@@ -220,6 +236,7 @@ int main_full( void )
     xTaskCreate( prvPermanentlyBlockingSemaphoreTask, "BlockSem", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
     xTaskCreate( prvPermanentlyBlockingNotificationTask, "BlockNoti", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
     xTaskCreate( prvDemonstrateChangingTimerReloadMode, "TimerMode", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL );
+    xTaskCreate(vLogTask, "LogTask", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
 
     vStartMessageBufferTasks( configMINIMAL_STACK_SIZE );
     vStartStreamBufferTasks();
