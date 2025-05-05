@@ -33,6 +33,7 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include "logger.h"
 
 SemaphoreHandle_t xStdioMutex;
 StaticSemaphore_t xStdioMutexBuffer;
@@ -48,6 +49,10 @@ void console_init( void )
         xStdioMutex = xSemaphoreCreateMutex( );
     }
     #endif /* if( configSUPPORT_STATIC_ALLOCATION == 1 ) */
+
+    // Init logger and create task for writer
+    initLogger();
+    xTaskCreate(logWriterTask, "LogWriter", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
 void console_print( const char * fmt,

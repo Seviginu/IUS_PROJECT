@@ -101,7 +101,7 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
  * format the raw data provided by the uxTaskGetSystemState() function in to human
  * readable ASCII form.  See the notes in the implementation of vTaskList() within
  * FreeRTOS/Source/tasks.c for limitations. */
-#define configUSE_STATS_FORMATTING_FUNCTIONS      0
+#define configUSE_STATS_FORMATTING_FUNCTIONS      1
 
 /* Enables the test whereby a stack larger than the total heap size is
  * requested. */
@@ -205,3 +205,12 @@ extern void vLoggingPrintf( const char * pcFormatString,
     #define FreeRTOS_printf( X )    vLoggingPrintf X
 #endif
 #endif /* FREERTOS_CONFIG_H */
+
+/* Define Trace Hook Macroses  
+*/
+#define traceTASK_SWITCHED_IN()          vTaskSwitchedIn()
+#define traceTASK_SWITCHED_OUT()         vTaskSwitchedOut()
+#define traceTASK_CREATE(pxNewTCB)       vTaskCreated(pxNewTCB)
+#define traceTASK_DELETE(pxTaskToDelete) vTaskDeleted(pxTaskToDelete)
+#define traceBLOCKING_ON_QUEUE_RECEIVE() vTaskBlocking(NULL)
+#define traceUNBLOCKED_ON_EVENT()        vTaskUnblocked(NULL)
