@@ -41,6 +41,7 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION    0
 #define configUSE_IDLE_HOOK                        1
 #define configUSE_TICK_HOOK                        1
+#define configUSE_MALLOC_FAILED_HOOK               1   // Для vApplicationMallocFailedHook()
 #define configUSE_DAEMON_TASK_STARTUP_HOOK         1
 #define configTICK_RATE_HZ                         ( 1000 )                  /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
 #define configMINIMAL_STACK_SIZE                   ( PTHREAD_STACK_MIN ) /* The stack size being passed is equal to the minimum stack size needed by pthread_create(). */
@@ -50,7 +51,7 @@
 #define configUSE_16_BIT_TICKS                     0
 #define configIDLE_SHOULD_YIELD                    1
 #define configUSE_MUTEXES                          1
-#define configCHECK_FOR_STACK_OVERFLOW             0
+#define configCHECK_FOR_STACK_OVERFLOW             2
 #define configUSE_RECURSIVE_MUTEXES                1
 #define configQUEUE_REGISTRY_SIZE                  20
 #define configUSE_APPLICATION_TASK_TAG             1
@@ -204,13 +205,10 @@ extern void vLoggingPrintf( const char * pcFormatString,
 #if ( ipconfigHAS_PRINTF == 1 )
     #define FreeRTOS_printf( X )    vLoggingPrintf X
 #endif
-#endif /* FREERTOS_CONFIG_H */
 
-/* Define Trace Hook Macroses  
-*/
-#define traceTASK_SWITCHED_IN()          vTaskSwitchedIn()
-#define traceTASK_SWITCHED_OUT()         vTaskSwitchedOut()
-#define traceTASK_CREATE(pxNewTCB)       vTaskCreated(pxNewTCB)
-#define traceTASK_DELETE(pxTaskToDelete) vTaskDeleted(pxTaskToDelete)
-#define traceBLOCKING_ON_QUEUE_RECEIVE() vTaskBlocking(NULL)
-#define traceUNBLOCKED_ON_EVENT()        vTaskUnblocked(NULL)
+#define traceTASK_SWITCHED_IN()            vApplicationTaskSwitchedIn()
+#define traceTASK_CREATE(pxNewTCB)         vApplicationTaskCreateHook(pxNewTCB)
+#define traceTASK_DELETE(pxTaskToDelete)   vApplicationTaskDeleteHook(pxTaskToDelete)
+#define traceBLOCKING_ON_QUEUE_RECEIVE(xQueue)   vApplicationBlockingHook(xQueue)
+#define traceUNBLOCKED_ON_EVENT()          xApplicationUnblockHook(NULL)
+#endif /* FREERTOS_CONFIG_H */

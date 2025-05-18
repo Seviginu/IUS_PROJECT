@@ -50,9 +50,6 @@ void console_init( void )
     }
     #endif /* if( configSUPPORT_STATIC_ALLOCATION == 1 ) */
 
-    // Init logger and create task for writer
-    initLogger();
-    xTaskCreate(logWriterTask, "LogWriter", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
 void console_print( const char * fmt,

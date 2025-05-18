@@ -107,6 +107,8 @@
 #include "StreamBufferInterrupt.h"
 #include "MessageBufferAMP.h"
 #include "console.h"
+#include "logger.h"
+#include "logger_bench.h"
 
 /* Priorities at which the tasks are created. */
 #define mainCHECK_TASK_PRIORITY         ( configMAX_PRIORITIES - 2 )
@@ -237,6 +239,14 @@ int main_full( void )
     xTaskCreate( prvPermanentlyBlockingNotificationTask, "BlockNoti", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
     xTaskCreate( prvDemonstrateChangingTimerReloadMode, "TimerMode", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL );
     xTaskCreate(vLogTask, "LogTask", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
+    
+    //Logger
+    initLogger();
+    xTaskCreate(logWriterTask, "LogWriter", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+    //Logger test bench
+    xTaskCreate(vLoggerTestTask, "LoggerTest", 
+        configMINIMAL_STACK_SIZE * 2, NULL, 
+        tskIDLE_PRIORITY + 1, NULL);
 
     vStartMessageBufferTasks( configMINIMAL_STACK_SIZE );
     vStartStreamBufferTasks();
