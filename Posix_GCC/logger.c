@@ -6,12 +6,8 @@
 #include <string.h>
 #include "logger.h"
 
-#define LOG_BUFFER_SIZE 1024
-static char logBuffer[LOG_BUFFER_SIZE];
-static size_t head = 0;
-static size_t tail = 0;
 static SemaphoreHandle_t logMutex;
-static FILE *logFile = NULL;  // Добавляем файловый дескриптор
+static FILE *logFile = NULL;  // Файловый дескриптор
 
 void initLogger(const char *filename)
 {
@@ -47,19 +43,20 @@ void initLogger(const char *filename)
     printf("Logger INIT OK\n");
 }
 
-static void logWrite(const char *data, size_t len)
+static void logWrite(const char *data)
 {
     if (xSemaphoreTake(logMutex, pdMS_TO_TICKS(100)) == pdTRUE)
     {
-        for (size_t i = 0; i < len; i++)
-        {
-            logBuffer[head] = data[i];
-            head = (head + 1) % LOG_BUFFER_SIZE;
-            if (head == tail)
-            {
-                tail = (tail + 1) % LOG_BUFFER_SIZE;
-            }
+        // Вывод в консоль
+        printf("%s", data);
+        fflush(stdout);
+        
+        // Запись в файл
+        if (logFile != NULL) {
+            fprintf(logFile, "%s", data);
+            fflush(logFile);  // Обеспечиваем запись на диск
         }
+        
         xSemaphoreGive(logMutex);
     }
 }
@@ -74,7 +71,7 @@ void logState(TaskHandle_t task, const char *state)
                        pdTICKS_TO_MS(timestamp), id, state);
     if (len > 0)
     {
-        logWrite(logLine, len);
+        logWrite(logLine);
     }
 }
 
@@ -102,36 +99,9 @@ __attribute__((weak)) void vApplicationBlockingHook(void *xQueue) {
 void logWriterTask(void *pvParams)
 {
     (void)pvParams;
-    char line[128];
-    size_t idx = 0;
 
     while (1)
     {
-        if (xSemaphoreTake(logMutex, pdMS_TO_TICKS(100)) == pdTRUE)
-        {
-            while (tail != head && idx < sizeof(line) - 1)
-            {
-                line[idx++] = logBuffer[tail];
-                tail = (tail + 1) % LOG_BUFFER_SIZE;
-
-                if (line[idx - 1] == '\n')
-                {
-                    line[idx] = '\0';
-                    // Вывод в консоль
-                    printf("%s", line);
-                    fflush(stdout);
-                    
-                    // Запись в файл
-                    if (logFile != NULL) {
-                        fprintf(logFile, "%s", line);
-                        fflush(logFile);  // Обеспечиваем запись на диск
-                    }
-                    
-                    idx = 0;
-                }
-            }
-            xSemaphoreGive(logMutex);
-        }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

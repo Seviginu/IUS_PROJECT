@@ -22,18 +22,15 @@ void consumerTask(void *pvParameters);
 void idleTask(void *pvParameters);
 
 int main(void) {
-    // Инициализация логгера
     initLogger("freertos_log.txt");
     printf("FreeRTOS Kernel Test Application\n");
 
-    // Создаем очередь
     queueHandle = xQueueCreate(5, sizeof(uint32_t));
     if (queueHandle == NULL) {
         printf("Queue creation failed!\n");
         for(;;);
     }
 
-    // Создаем задачи с проверкой ошибок
     if (xTaskCreate(producerTask, "Producer", configMINIMAL_STACK_SIZE * 2, NULL, 2, &producerTaskHandle) != pdPASS) {
         printf("Producer task creation failed!\n");
         for(;;);
