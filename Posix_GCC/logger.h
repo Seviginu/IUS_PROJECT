@@ -1,55 +1,24 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "queue.h"
 
-/**
- * @brief Initialize the logger system
- */
-void initLogger(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**
- * @brief Log task state change
- * @param task Handle of the task
- * @param state New state as string ("Ready", "Running", "Blocked", "Deleted")
- */
-void logState(TaskHandle_t task, const char *state);
-
-/**
- * @brief Handler for task switch event
- */
-void vTaskSwitchedIn(void);
-
-/**
- * @brief Handler for task blocking event
- * @param queue Queue that caused the block (unused in current implementation)
- */
-void vTaskBlocking(void *queue);
-
-/**
- * @brief Handler for task unblocking event
- * @param task Task being unblocked (current task if NULL)
- */
-void vTaskUnblocked(void *task);
-
-/**
- * @brief Handler for task creation event
- * @param task Newly created task
- */
-void vTaskCreated(TaskHandle_t task);
-
-/**
- * @brief Handler for task deletion event
- * @param task Task being deleted
- */
-void vTaskDeleted(TaskHandle_t task);
-
-/**
- * @brief Task function that writes logs to console
- * @param pvParams Task parameters (unused)
- */
+void initLogger(const char *filename);
 void logWriterTask(void *pvParams);
 
-#endif // LOGGER_H
+/* Объявления hook-функций */
+void vApplicationTaskSwitchedInHook(void);
+void vApplicationTaskSwitchedOutHook(void);
+void vApplicationMallocFailedHook(void);
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
+void vApplicationTaskCreateHook(TaskHandle_t xCreatedTask);
+void vApplicationTaskDeleteHook(TaskHandle_t xTaskToDelete);
+void vApplicationBlockingHook(void *xQueue);
+
+#ifdef __cplusplus
+}
+#endif

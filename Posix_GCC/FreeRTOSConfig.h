@@ -39,19 +39,20 @@
 
 #define configUSE_PREEMPTION                       1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION    0
-#define configUSE_IDLE_HOOK                        1
+#define configUSE_IDLE_HOOK                        0
 #define configUSE_TICK_HOOK                        1
-#define configUSE_MALLOC_FAILED_HOOK               1   // Для vApplicationMallocFailedHook()
+#define configUSE_MALLOC_FAILED_HOOK               0   // Для vApplicationMallocFailedHook()
 #define configUSE_DAEMON_TASK_STARTUP_HOOK         1
 #define configTICK_RATE_HZ                         ( 1000 )                  /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
 #define configMINIMAL_STACK_SIZE                   ( PTHREAD_STACK_MIN ) /* The stack size being passed is equal to the minimum stack size needed by pthread_create(). */
 #define configTOTAL_HEAP_SIZE                      ( ( size_t ) ( 65 * 1024 ) )
 #define configMAX_TASK_NAME_LEN                    ( 12 )
 #define configUSE_TRACE_FACILITY                   1
+#define configUSE_TRACE_FACILITY_2                 0
 #define configUSE_16_BIT_TICKS                     0
 #define configIDLE_SHOULD_YIELD                    1
 #define configUSE_MUTEXES                          1
-#define configCHECK_FOR_STACK_OVERFLOW             2
+#define configCHECK_FOR_STACK_OVERFLOW             0
 #define configUSE_RECURSIVE_MUTEXES                1
 #define configQUEUE_REGISTRY_SIZE                  20
 #define configUSE_APPLICATION_TASK_TAG             1
@@ -138,47 +139,6 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
 extern void vAssertCalled( const char * const pcFileName,
                            unsigned long ulLine );
 
-/* projCOVERAGE_TEST should be defined on the command line so this file can be
- * used with multiple project configurations.  If it is
- */
-#ifndef projCOVERAGE_TEST
-    #error projCOVERAGE_TEST should be defined to 1 or 0 on the command line.
-#endif
-
-#ifndef projENABLE_TRACING
-    #error projENABLE_TRACING should be defined to 1 or 0 on the command line.
-#endif
-
-#if ( projCOVERAGE_TEST == 1 )
-
-/* Insert NOPs in empty decision paths to ensure both true and false paths
- * are being tested. */
-    #define mtCOVERAGE_TEST_MARKER()    __asm volatile ( "NOP" )
-
-/* Ensure the tick count overflows during the coverage test. */
-    #define configINITIAL_TICK_COUNT        0xffffd800UL
-
-/* Allows tests of trying to allocate more than the heap has free. */
-    #define configUSE_MALLOC_FAILED_HOOK    0
-
-/* To test builds that remove the static qualifier for debug builds. */
-    #define portREMOVE_STATIC_QUALIFIER
-#else /* if ( projCOVERAGE_TEST == 1 ) */
-
-/* It is a good idea to define configASSERT() while developing.  configASSERT()
- * uses the same semantics as the standard C assert() macro.  Don't define
- * configASSERT() when performing code coverage tests though, as it is not
- * intended to asserts() to fail, some some code is intended not to run if no
- * errors are present. */
-    #define configASSERT( x )    if( ( x ) == 0 ) vAssertCalled( __FILE__, __LINE__ )
-
-    #define configUSE_MALLOC_FAILED_HOOK    1
-
-/* Include the FreeRTOS+Trace FreeRTOS trace macro definitions. */
-    #if( projENABLE_TRACING == 1 )
-        #include "trcRecorder.h"
-    #endif /* if ( projENABLE_TRACING == 1 ) */
-#endif /* if ( projCOVERAGE_TEST == 1 ) */
 
 /* networking definitions */
 #define configMAC_ISR_SIMULATOR_PRIORITY    ( configMAX_PRIORITIES - 1 )
@@ -206,9 +166,17 @@ extern void vLoggingPrintf( const char * pcFormatString,
     #define FreeRTOS_printf( X )    vLoggingPrintf X
 #endif
 
-#define traceTASK_SWITCHED_IN()            vApplicationTaskSwitchedIn()
-#define traceTASK_CREATE(pxNewTCB)         vApplicationTaskCreateHook(pxNewTCB)
-#define traceTASK_DELETE(pxTaskToDelete)   vApplicationTaskDeleteHook(pxTaskToDelete)
-#define traceBLOCKING_ON_QUEUE_RECEIVE(xQueue)   vApplicationBlockingHook(xQueue)
-#define traceUNBLOCKED_ON_EVENT()          xApplicationUnblockHook(NULL)
+#define configOVERRIDE_DEFAULT_TICK_HOOK 1
+#define configOVERRIDE_DEFAULT_MALLOC_FAILED_HOOK 1
+
+#define configAPPLICATION_ALLOCATED_HEAP 1
+extern uint8_t ucHeap[configTOTAL_HEAP_SIZE];
+
+
+#define traceTASK_SWITCHED_IN() vApplicationTaskSwitchedInHook()
+#define raceTASK_SWITCHED_OUT() vApplicationTaskSwitchedOutHook()
+#define traceTASK_CREATE(pxNewTCB) vApplicationTaskCreateHook(pxNewTCB)
+#define traceTASK_DELETE(pxTaskToDelete) vApplicationTaskDeleteHook(pxTaskToDelete)
+#define traceBLOCKING_ON_QUEUE_RECEIVE(pxQueue) vApplicationBlockingHook(pxQueue)
+
 #endif /* FREERTOS_CONFIG_H */
